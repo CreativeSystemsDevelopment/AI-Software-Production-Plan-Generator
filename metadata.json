@@ -1,0 +1,5 @@
+{
+  "name": "AI Software Development Planner",
+  "description": "An application that uses AI to generate a comprehensive, professional software development plan based on a user's project idea, that's intended to be developed by a team of programmatically hyper specialized ai agents. Adapt the plan so that it can be developed as quickly as possible by using the unlimited ai workfoce.\n",
+  "requestFramePermissions": []
+}
