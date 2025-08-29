@@ -16,9 +16,9 @@ const taskListSchema = {
             description: { type: Type.STRING },
             agentSpecialization: { type: Type.STRING },
             dependencies: { type: Type.ARRAY, items: { type: Type.STRING } },
-            output: { 
+            output: {
                 type: Type.STRING,
-                description: "A highly precise description of the expected output artifact. Format: 'fileName | Description of export and function/component signature.' Example: 'DisplayComponent.js | Exports a default functional React component. Props: { value: string, error?: string }'"
+                description: "A highly precise description of the expected output artifact. For code files, use 'fileName | Description'. For UI components, the format is 'fileName | Description ||| <HTML_PREVIEW>'. The HTML preview must be a self-contained, static HTML document representing the component's visual appearance."
             },
         },
     },
@@ -102,21 +102,29 @@ const responseSchema = {
 };
 
 export const generatePlan = async (userPrompt: string): Promise<SoftwarePlan> => {
-  const systemInstruction = `You are a world-class AI Software Architect. Your task is to create a production-only software development plan based on a user's request. This plan is exclusively for a team of hyper-specialized AI agents responsible for producing the application code, orchestrated by an AI Supervisor.
+  const systemInstruction = `You are a world-class AI Software Architect. Your task is to create a production-only software development plan based on a user's request. This plan is for a team of hyper-specialized AI agents that produce the application code.
 
-Your primary goal is to structure the plan for maximum parallelism and speed, assuming an effectively unlimited AI workforce. Break down the project into the smallest possible, independent, atomic tasks. For each task, the 'output' specification MUST be extremely precise. It must describe the exact deliverable artifact. For example, instead of a vague 'React component', the output specification should be: 'DisplayComponent.js | Exports a default functional React component. Props: { value: string, error?: string }'. This level of detail is critical for the AI agents to execute tasks without ambiguity.
+**Key Principles:**
+1.  **Parallelism:** Structure the plan for maximum parallelism, assuming an unlimited AI workforce.
+2.  **Atomicity:** Break down the project into the smallest possible, independent, atomic tasks.
+3.  **Precision:** Task 'output' specifications must be extremely precise.
 
-IMPORTANT: All other phases like initial project planning, research, requirements gathering, testing, and deployment are handled by a different system and MUST NOT be included in your output.
+**Agent Specializations & Task Requirements:**
+*   **Standard Agents:** (Frontend, Backend, Database, etc.) will produce code files.
+    *   **Output Format:** \`fileName | Description of exports/functions.\`
+*   **UI Agents:** In addition to code, they MUST produce a static HTML preview of the component.
+    *   **Output Format:** \`fileName | Description ||| <HTML_PREVIEW>\`
+    *   The \`<HTML_PREVIEW>\` MUST be a complete, self-contained HTML document that visually represents the component. Use placeholders for data.
+*   **DevOps_Agent:** This agent is responsible for creating deployment and environment setup files.
+    *   You MUST include tasks for the DevOps_Agent to create a \`Dockerfile\` and a \`docker-compose.yml\` file for the project.
 
-Your response must contain all sections defined in the schema. This includes a special 'supervisorExecutionPlan' section. For this section, you must provide:
-1.  'jsonRepresentation': The full, structured list of tasks.
-2.  'textualRepresentation': A simple, text-based flow diagram that the supervisor can parse to understand task dependencies and parallel execution opportunities. Example Format: '[START]\\n  -> T1 (Agent Name)\\n  -> T2 (Agent Name)\\n[T1, T2]\\n  -> T3 (Agent Name)\\n[T3]\\n  -> [END]'. This format is mandatory.
+**Output Structure:**
+Your response MUST be a single JSON object that adheres to the provided schema.
+1.  **supervisorExecutionPlan:** Must contain both the full JSON task list and a simple text-based flow diagram (e.g., \`[START] -> T1 -> [END]\`).
+2.  **agentSupervisorDirectives:** Create a powerful, generic \`systemPromptTemplate\` for EACH agent specialization. The template MUST include placeholders like \`{{TASK_DESCRIPTION}}\`, \`{{TASK_DEPENDENCIES}}\`, and \`{{EXPECTED_OUTPUT}}\`.
+3.  **Diagrams:** System architecture and task dependency diagrams must be in valid Mermaid.js 'graph TD' syntax. ALL node text MUST be enclosed in double quotes (e.g., \`A["Node Text"]\`).
 
-For the 'Agent Supervisor Directives', create a directive for each agent specialization with a powerful, generic 'systemPromptTemplate'. This template MUST include placeholders like '{{TASK_DESCRIPTION}}', '{{TASK_DEPENDENCIES}}', and '{{EXPECTED_OUTPUT}}' for the supervisor to dynamically assign tasks.
-
-The final output must be a dependency graph of tasks. Both the system architecture and task dependency diagrams must be in valid and complete Mermaid.js 'graph TD' syntax.
-
-CRITICAL RULE: To prevent syntax errors, ALL text within diagram nodes MUST be enclosed in double quotes. For example, use 'A["User Interface"]' instead of 'A[User Interface]'. This is mandatory for all nodes. Ensure all node identifiers are valid and properly linked.`;
+**CRITICAL:** Do NOT include tasks for planning, research, testing, or deployment. Focus solely on generating the production code and necessary Docker files.`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
