@@ -137,3 +137,13 @@ CRITICAL RULE: To prevent syntax errors, ALL text within diagram nodes MUST be e
     throw new Error("The AI returned an invalid plan format.");
   }
 };
+
+export const executeAgentTask = async (systemPrompt: string, userPrompt: string): Promise<string> => {
+    const model = ai.getGenerativeModel({
+        model: "gemini-1.5-flash-latest",
+        systemInstruction: systemPrompt,
+    });
+
+    const result = await model.generateContent(userPrompt);
+    return result.response.text();
+};

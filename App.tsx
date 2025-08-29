@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { UserInputForm } from './components/UserInputForm';
 import { PlanViewer } from './components/PlanViewer';
+import { AgentExecutor } from './components/AgentExecutor';
 import { DetailedLoader } from './components/DetailedLoader';
 import { generatePlan } from './services/geminiService';
 import type { SoftwarePlan } from './types';
@@ -127,6 +128,7 @@ const App: React.FC = () => {
         {appState === 'results' && plan && (
           <div className="w-full max-w-6xl mx-auto animate-fade-in">
             <PlanViewer plan={plan} onDownloadStart={handleDownloadStart}/>
+            <AgentExecutor plan={plan} />
           </div>
         )}
       </main>
